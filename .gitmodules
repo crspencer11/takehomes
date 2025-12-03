@@ -1,0 +1,3 @@
+[submodule "/Users/lilblick/Projects/takehomes/contextual_ai/cloned_repo"]
+	path = /Users/lilblick/Projects/takehomes/contextual_ai/cloned_repo
+	url = git@github.com:ContextualAI/contextual-client-python.git
