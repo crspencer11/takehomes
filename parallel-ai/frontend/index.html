@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Search Evaluation App</h2>
+
+    <!-- Input -->
+    <div>
+      <input id="query" placeholder="Enter query" />
+      <button onclick="search()">Search</button>
+      <button onclick="compare()">Compare Modes</button>
+    </div>
+
+    <hr/>
+
+    <!-- Results -->
+    <div id="results"></div>
+
+    <!-- Compare -->
+    <div id="compareResults"></div>
+
+    <script>
+      async function search() {
+        const query = document.getElementById("query").value;
+
+        const res = await fetch("http://localhost:8000/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+        const data = await res.json();
+        renderResults(data.results);
+      }
+
+      function renderResults(results) {
+        const container = document.getElementById("results");
+        container.innerHTML = "<h3>Results</h3>";
+
+        results.forEach((r) => {
+          const div = document.createElement("div");
+
+          div.innerHTML = `
+            <h4>
+              <a href="${r.url}" target="_blank">
+                ${r.title || "No title"}
+              </a>
+            </h4>
+
+            <p>${r.excerpts?.[0] || ""}</p>
+
+            <button onclick="sendFeedback('${r.url}', ${true})">
+              Correct
+            </button>
+
+            <button onclick="sendFeedback('${r.url}', ${false})">
+              Incorrect
+            </button>
+
+            <hr/>
+          `;
+
+          container.appendChild(div);
+        });
+      }
+      async function sendFeedback(url, isCorrect) {
+        await fetch("http://localhost:8000/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            index,
+            is_correct: isCorrect,
+          }),
+        });
+      }
+
+      async function compare() {
+        const query = document.getElementById("query").value;
+
+        const res = await fetch("http://localhost:8000/compare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+        const data = await res.json();
+
+        const container = document.getElementById("compareResults");
+
+        container.innerHTML = `
+          <h3>FAST MODE</h3>
+          ${renderSimple(data.fast)}
+
+          <h3>ACCURATE MODE</h3>
+          ${renderSimple(data.accurate)}
+        `;
+      }
+
+      function renderSimple(results) {
+        return results.map(r => `
+          <div>
+            <a href="${r.url}" target="_blank">${r.title || "No title"}</a>
+            <p>${r.excerpts?.[0] || ""}</p>
+          </div>
+          <hr/>
+        `).join("");
+      }
+    </script>
+  </body>
+</html>
